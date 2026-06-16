@@ -1,0 +1,25 @@
+{
+  "name": "my-resume-analyzer-backend",
+  "version": "1.0.0",
+  "description": "Backend for the Resume Analyzer application",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^1.28.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "groq-sdk": "^1.0.0",
+    "multer": "^1.4.2",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7",
+    "prisma": "^7.8.0"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
