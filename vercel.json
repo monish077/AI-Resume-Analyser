@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "frontend/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } },
+    { "src": "frontend/api/server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/frontend/api/server.js" },
+    { "src": "/(.*)", "dest": "/frontend/dist/$1" }
+  ],
+  "functions": {
+    "frontend/api/server.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  }
+}
