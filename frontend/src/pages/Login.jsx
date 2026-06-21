@@ -13,8 +13,9 @@ const Login = () => {
         e.preventDefault();
         setError(null);
         try {
-            const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/g, '');
-            const url = API_BASE ? `${API_BASE}/api/auth/login` : '/api/auth/login';
+            const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$|^$/g, '');
+            const isLocalhost = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1');
+            const url = (API_BASE && (!isLocalhost || import.meta.env.DEV)) ? `${API_BASE}/api/auth/login` : '/api/auth/login';
             const cleanEmail = (email || '').trim().toLowerCase();
             const resp = await axios.post(url, { email: cleanEmail, password });
             if (resp.data && resp.data.access_token) {

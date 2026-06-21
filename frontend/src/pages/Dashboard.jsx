@@ -39,8 +39,9 @@ const Dashboard = () => {
 
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-                const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/\/+$/g, '');
-                const url = API_BASE ? `${API_BASE}/api/history` : '/api/history';
+                const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$|^$/g, '');
+                const isLocalhost = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1');
+                const url = (API_BASE && (!isLocalhost || import.meta.env.DEV)) ? `${API_BASE}/api/history` : '/api/history';
 
                 // Debugging logs to diagnose missing history / 404
                 console.debug('[Dashboard] Fetching history from', url);

@@ -30,12 +30,12 @@ const Register = () => {
     }
 
     try {
-      const API_BASE = (
-        import.meta.env.VITE_API_URL || ""
-      ).replace(/\/+$/, "");
+      const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$|^$/g, '');
+      const isLocalhost = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1');
+      const url = (API_BASE && (!isLocalhost || import.meta.env.DEV)) ? `${API_BASE}/api/auth/register` : '/api/auth/register';
 
       const response = await axios.post(
-        `${API_BASE}/api/auth/register`,
+        url,
         {
           email: cleanEmail,
           password,

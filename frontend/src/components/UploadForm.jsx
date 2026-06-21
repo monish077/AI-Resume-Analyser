@@ -34,8 +34,43 @@ const UploadForm = () => {
     }
 };
 
-    const doUpload = async (formData, headers) => {
-        return axios.post('/api/analyze', formData, { headers, timeout: 120000 });
+    const executeUpload = async (file, description, currentRetry = 0) => {
+        setLoading(true);
+        setErrorDetails(null);
+
+        const formData = new FormData();
+        formData.append('resume', file);
+        formData.append('job_description', description);
+
+        const token = await getAccessToken();
+        const headers = { 'Content-Type': 'multipart/form-data' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$|^$/g, '');
+        const isLocalhost = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1');
+        const url = (API_BASE && (!isLocalhost || import.meta.env.DEV)) ? `${API_BASE}/api/analyze` : '/api/analyze';
+
+        try {
+            const response = await axios.post(url, formData, { headers, timeout: 120000 });
+            setAtsScore(response.data.ats_score ?? null);
+            const fb = response.data.feedback || [];
+            setFeedback(Array.isArray(fb) ? fb : [String(fb)]);
+            setRetryCount(0);
+            setLoading(false);
+        } catch (err) {
+            const details = err?.response?.data || { message: err.message };
+            console.error('Upload error', details);
+            setErrorDetails(details);
+            if (currentRetry < 2) {
+                const nextRetry = currentRetry + 1;
+                setRetryCount(nextRetry);
+                setTimeout(() => {
+                    executeUpload(file, description, nextRetry);
+                }, 1000 * nextRetry);
+            } else {
+                setLoading(false);
+            }
+        }
     };
 
     const handleSubmit = async (event) => {
@@ -44,39 +79,8 @@ const UploadForm = () => {
             setErrorDetails({ message: 'Please upload a PDF and enter a job description.' });
             return;
         }
-
-        setLoading(true);
-        setErrorDetails(null);
-
-        const formData = new FormData();
-        formData.append('resume', pdfFile);
-        formData.append('job_description', jobDescription);
-
-        const token = await getAccessToken();
-        const headers = { 'Content-Type': 'multipart/form-data' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        // Use Vite env VITE_API_URL when provided (e.g., http://localhost:5000)
-        const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$|^$/g, '');
-        const url = API_BASE ? `${API_BASE}/api/analyze` : '/api/analyze';
-
-        try {
-            const response = await axios.post(url, formData, { headers, timeout: 120000 });
-            setAtsScore(response.data.ats_score ?? null);
-            const fb = response.data.feedback || [];
-            setFeedback(Array.isArray(fb) ? fb : [String(fb)]);
-            setRetryCount(0);
-        } catch (err) {
-            const details = err?.response?.data || { message: err.message };
-            console.error('Upload error', details);
-            setErrorDetails(details);
-            if (retryCount < 2) {
-                setRetryCount((c) => c + 1);
-                setTimeout(() => handleSubmit(event), 1000 * (retryCount + 1));
-            }
-        } finally {
-            setLoading(false);
-        }
+        setRetryCount(0);
+        await executeUpload(pdfFile, jobDescription, 0);
     };
 
     return (
@@ -100,7 +104,7 @@ const UploadForm = () => {
                     <div className="error-box">
                         <strong>Error:</strong>
                         <pre>{JSON.stringify(errorDetails, null, 2)}</pre>
-                        {retryCount < 2 && <p>Retrying... ({retryCount})</p>}
+                        {retryCount > 0 && retryCount < 3 && <p>Retrying... ({retryCount}/2)</p>}
                     </div>
                 )}
             </form>
