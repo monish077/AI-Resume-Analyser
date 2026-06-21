@@ -126,35 +126,31 @@ console.debug('Admin user creation failed, falling back to signup', {
         console.debug('Admin create attempted and failed (ignored):', adminErr?.message || adminErr);
       }
     }
-    return res.status(500).json({
-  error: 'User creation failed'
-});
-
     // Fallback: public signup. Use anon key for apikey header when available.
-    // const signupUrl = `${base}/auth/v1/signup`;
-    // const resp = await fetch(signupUrl, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     apikey: anonKey || serviceKey,
-    //     Authorization: `Bearer ${serviceKey || anonKey}`
-    //   },
-    //   body: JSON.stringify({ email, password })
-    // });
+    const signupUrl = `${base}/auth/v1/signup`;
+    const resp = await fetch(signupUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: anonKey || serviceKey,
+        Authorization: `Bearer ${serviceKey || anonKey}`
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-    // const data = await resp.json().catch(async () => {
-    //   const txt = await resp.text().catch(() => '');
-    //   return { raw: txt };
-    // });
+    const data = await resp.json().catch(async () => {
+      const txt = await resp.text().catch(() => '');
+      return { raw: txt };
+    });
 
-    // if (!resp.ok) {
-    //   const message = data?.error || data?.message || (data && data.raw) || 'Signup failed';
-    //   if (/(already|exists)/i.test(String(message))) {
-    //     return res.status(409).json({ error: 'Email already registered', details: data });
-    //   }
-    //   console.error('Supabase signup error', resp.status, data);
-    //   return res.status(resp.status).json({ error: message, details: data });
-    // }
+    if (!resp.ok) {
+      const message = data?.error || data?.message || (data && data.raw) || 'Signup failed';
+      if (/(already|exists)/i.test(String(message))) {
+        return res.status(409).json({ error: 'Email already registered', details: data });
+      }
+      console.error('Supabase signup error', resp.status, data);
+      return res.status(resp.status).json({ error: message, details: data });
+    }
 
     // If public signup succeeded, attempt token fetch (may fail if email confirmation required)
     const tokenResp = await fetchTokenForUser(base, email, password);

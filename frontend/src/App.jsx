@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Analyzer from './pages/Analyzer';
 import Dashboard from './pages/Dashboard';
@@ -19,10 +19,10 @@ const App = () => {
           </div>
         </div>
         <nav className="nav-links">
-          <a href="/">Analyze</a>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/login">Login</a>
-          <a href="/register">Register</a>
+          <Link to="/">Analyze</Link>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/login">Login</Link>
+          <Link to="/register">Register</Link>
         </nav>
       </header>
 
